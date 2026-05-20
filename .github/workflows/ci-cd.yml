@@ -1,0 +1,341 @@
+name: CST Booking System CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+env:
+  NODE_VERSION: "22"
+  BACKEND_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cst_booking_system?schema=public
+  JWT_SECRET: ci-secret-for-cst-booking-system-at-least-32-characters
+  CLIENT_ORIGIN: http://localhost:5173
+
+jobs:
+  stage-1-unit-tests:
+    name: "Stage 1: Unit Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+        working-directory: backend
+
+      - name: Backend unit tests
+        run: npm run test:unit
+        working-directory: backend
+
+      - name: Frontend unit tests
+        run: npm run test:unit
+        working-directory: frontend
+
+  stage-2-integration-tests:
+    name: "Stage 2: Integration Tests"
+    runs-on: ubuntu-latest
+    needs: stage-1-unit-tests
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cst_booking_system
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cst_booking_system"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: ${{ env.BACKEND_DATABASE_URL }}
+      JWT_SECRET: ${{ env.JWT_SECRET }}
+      CLIENT_ORIGIN: ${{ env.CLIENT_ORIGIN }}
+      COOKIE_SECURE: "false"
+      LAUNDRY_RESOURCE_COUNT: "4"
+      GROUND_RESOURCE_NAME: CST Football Ground
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Apply database migrations
+        run: npm run prisma:deploy
+        working-directory: backend
+
+      - name: Backend integration tests
+        run: npm run test:integration
+        working-directory: backend
+
+      - name: Frontend MSW integration tests
+        run: npm run test:integration
+        working-directory: frontend
+
+  stage-3-api-contract-tests:
+    name: "Stage 3: API Contract Tests"
+    runs-on: ubuntu-latest
+    needs: stage-2-integration-tests
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cst_booking_system
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cst_booking_system"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: ${{ env.BACKEND_DATABASE_URL }}
+      JWT_SECRET: ${{ env.JWT_SECRET }}
+      CLIENT_ORIGIN: ${{ env.CLIENT_ORIGIN }}
+      COOKIE_SECURE: "false"
+      LAUNDRY_RESOURCE_COUNT: "4"
+      GROUND_RESOURCE_NAME: CST Football Ground
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Apply database migrations
+        run: npm run prisma:deploy
+        working-directory: backend
+
+      - name: Run Supertest contract tests
+        run: npm run test:contract
+        working-directory: backend
+
+  stage-4-e2e-tests:
+    name: "Stage 4: End-to-End Tests"
+    runs-on: ubuntu-latest
+    needs: stage-3-api-contract-tests
+    env:
+      E2E_BASE_URL: ${{ secrets.STAGING_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Require staging URL
+        run: |
+          if [ -z "${E2E_BASE_URL}" ]; then
+            echo "Missing STAGING_URL repository secret."
+            exit 1
+          fi
+
+      - name: Install E2E dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E journeys
+        run: npm run test:e2e
+
+  stage-5-performance-tests:
+    name: "Stage 5: Performance Tests"
+    runs-on: ubuntu-latest
+    needs: stage-4-e2e-tests
+    env:
+      API_BASE_URL: ${{ secrets.STAGING_API_URL }}
+      K6_AUTH_TOKEN: ${{ secrets.K6_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Run Lighthouse CI
+        run: npm run perf:lighthouse
+        working-directory: frontend
+
+      - name: Install k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Require staging API URL
+        run: |
+          if [ -z "${API_BASE_URL}" ]; then
+            echo "Missing STAGING_API_URL repository secret."
+            exit 1
+          fi
+
+      - name: Run k6 API smoke load test
+        run: k6 run scripts/k6/booking-smoke.js
+
+  stage-6-security-quality-gates:
+    name: "Stage 6: Security & Quality Gates"
+    runs-on: ubuntu-latest
+    needs: stage-5-performance-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Initialize CodeQL SAST
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Backend type/lint gate
+        run: npm run lint
+        working-directory: backend
+
+      - name: Frontend type/lint gate
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Backend production dependency audit
+        run: npm run audit:prod
+        working-directory: backend
+
+      - name: Frontend production dependency audit
+        run: npm run audit:prod
+        working-directory: frontend
+
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@v3
+
+  deploy-render-blue-green:
+    name: "Deploy: Render Blue/Green"
+    runs-on: ubuntu-latest
+    needs: stage-6-security-quality-gates
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      RENDER_ACTIVE_COLOR: ${{ vars.RENDER_ACTIVE_COLOR }}
+      RENDER_BLUE_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_BLUE_BACKEND_DEPLOY_HOOK }}
+      RENDER_GREEN_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_GREEN_BACKEND_DEPLOY_HOOK }}
+      RENDER_BLUE_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_BLUE_FRONTEND_DEPLOY_HOOK }}
+      RENDER_GREEN_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_GREEN_FRONTEND_DEPLOY_HOOK }}
+      RENDER_BLUE_API_URL: ${{ secrets.RENDER_BLUE_API_URL }}
+      RENDER_GREEN_API_URL: ${{ secrets.RENDER_GREEN_API_URL }}
+      RENDER_BLUE_FRONTEND_URL: ${{ secrets.RENDER_BLUE_FRONTEND_URL }}
+      RENDER_GREEN_FRONTEND_URL: ${{ secrets.RENDER_GREEN_FRONTEND_URL }}
+      RENDER_PROMOTE_DEPLOY_HOOK: ${{ secrets.RENDER_PROMOTE_DEPLOY_HOOK }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select inactive color and trigger Render deploy hooks
+        run: |
+          set -euo pipefail
+
+          ACTIVE="${RENDER_ACTIVE_COLOR:-blue}"
+          if [ "${ACTIVE}" = "blue" ]; then
+            TARGET="green"
+            BACKEND_HOOK="${RENDER_GREEN_BACKEND_DEPLOY_HOOK}"
+            FRONTEND_HOOK="${RENDER_GREEN_FRONTEND_DEPLOY_HOOK}"
+            TARGET_API_URL="${RENDER_GREEN_API_URL}"
+            TARGET_FRONTEND_URL="${RENDER_GREEN_FRONTEND_URL}"
+          else
+            TARGET="blue"
+            BACKEND_HOOK="${RENDER_BLUE_BACKEND_DEPLOY_HOOK}"
+            FRONTEND_HOOK="${RENDER_BLUE_FRONTEND_DEPLOY_HOOK}"
+            TARGET_API_URL="${RENDER_BLUE_API_URL}"
+            TARGET_FRONTEND_URL="${RENDER_BLUE_FRONTEND_URL}"
+          fi
+
+          if [ -z "${BACKEND_HOOK}" ] || [ -z "${FRONTEND_HOOK}" ]; then
+            echo "Missing Render deploy hook for target color: ${TARGET}"
+            exit 1
+          fi
+
+          echo "Deploying inactive ${TARGET} environment..."
+          curl -fsS -X POST "${BACKEND_HOOK}"
+          curl -fsS -X POST "${FRONTEND_HOOK}"
+
+          echo "Waiting for backend health..."
+          for attempt in $(seq 1 30); do
+            if curl -fsS "${TARGET_API_URL}/api/health"; then
+              break
+            fi
+            echo "Backend not ready yet, attempt ${attempt}/30"
+            sleep 10
+          done
+
+          echo "Checking frontend..."
+          curl -fsS "${TARGET_FRONTEND_URL}" >/dev/null
+
+          if [ -n "${RENDER_PROMOTE_DEPLOY_HOOK}" ]; then
+            echo "Triggering promotion/router deploy hook..."
+            curl -fsS -X POST "${RENDER_PROMOTE_DEPLOY_HOOK}"
+          else
+            echo "No RENDER_PROMOTE_DEPLOY_HOOK configured. Target environment deployed and smoke checked."
+          fi

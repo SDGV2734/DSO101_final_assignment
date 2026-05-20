@@ -1,0 +1,10 @@
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    environment: "node",
+    include: ["src/**/*.integration.test.ts", "src/**/*.integration.test.tsx"],
+    setupFiles: ["src/test/msw.ts"],
+    testTimeout: 30000
+  }
+});

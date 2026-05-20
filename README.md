@@ -114,3 +114,13 @@ npm run dev
 ```
 
 Then open `http://localhost:5173`.
+
+## DevOps
+
+Production containerization and CI/CD files are included:
+
+- [backend/Dockerfile](/Users/sonamdorjighalley/Desktop/SEM-6/DSO101/final-project/backend/Dockerfile)
+- [frontend/Dockerfile](/Users/sonamdorjighalley/Desktop/SEM-6/DSO101/final-project/frontend/Dockerfile)
+- [docker-compose.yml](/Users/sonamdorjighalley/Desktop/SEM-6/DSO101/final-project/docker-compose.yml)
+- [.github/workflows/ci-cd.yml](/Users/sonamdorjighalley/Desktop/SEM-6/DSO101/final-project/.github/workflows/ci-cd.yml)
+- [docs/devops-blueprint.md](/Users/sonamdorjighalley/Desktop/SEM-6/DSO101/final-project/docs/devops-blueprint.md)

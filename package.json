@@ -1,0 +1,13 @@
+{
+  "name": "cst-booking-system",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "perf:k6": "k6 run scripts/k6/booking-smoke.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}

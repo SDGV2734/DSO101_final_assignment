@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "tsc -b --noEmit"
+    "lint": "tsc -b --noEmit",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "perf:lighthouse": "lhci autorun --config=./lighthouserc.cjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
@@ -21,8 +25,12 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "@lhci/cli": "^0.14.0",
     "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "msw": "^2.7.0",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "vitest": "^2.1.8"
   }
 }
