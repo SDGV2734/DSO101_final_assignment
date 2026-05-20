@@ -5,13 +5,15 @@ import { authService } from "../services/auth.service.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { AppError } from "../utils/app-error.js";
 
+const authCookieOptions = {
+  httpOnly: true,
+  secure: env.COOKIE_SECURE,
+  sameSite: env.COOKIE_SECURE ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000
+} as const;
+
 const setAuthCookie = (res: Response, token: string) => {
-  res.cookie("accessToken", token, {
-    httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
+  res.cookie("accessToken", token, authCookieOptions);
 };
 
 export const authController = {
@@ -28,7 +30,7 @@ export const authController = {
   }),
 
   logout: asyncHandler(async (_req, res) => {
-    res.clearCookie("accessToken");
+    res.clearCookie("accessToken", authCookieOptions);
     res.status(204).send();
   }),
 
