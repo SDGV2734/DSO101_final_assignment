@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+}
+
+enum BookingStatus {
+  ACTIVE
+  CANCELLED
+  COMPLETED
+}
+
+enum LaundryResourceType {
+  WASHER
+  DRYER
+}
+
+model User {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String            @db.VarChar(120)
+  email           String            @unique @db.VarChar(255)
+  studentId       String            @unique @db.VarChar(40)
+  passwordHash    String            @map("password_hash")
+  role            UserRole          @default(STUDENT)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  laundryBookings LaundryBooking[]
+  groundBookings  GroundBooking[]
+  notifications   Notification[]
+
+  @@index([email])
+  @@index([studentId])
+}
+
+model LaundryBooking {
+  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String              @map("user_id") @db.Uuid
+  resourceType   LaundryResourceType @map("resource_type")
+  resourceNumber Int                 @map("resource_number")
+  startsAt       DateTime            @map("starts_at")
+  endsAt         DateTime            @map("ends_at")
+  status         BookingStatus       @default(ACTIVE)
+  cancelledAt    DateTime?           @map("cancelled_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startsAt])
+  @@index([startsAt, endsAt])
+  @@index([resourceType, resourceNumber, startsAt])
+}
+
+model GroundBooking {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  groundName  String        @default("CST Football Ground") @map("ground_name") @db.VarChar(120)
+  startsAt    DateTime      @map("starts_at")
+  endsAt      DateTime      @map("ends_at")
+  status      BookingStatus @default(ACTIVE)
+  cancelledAt DateTime?     @map("cancelled_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startsAt])
+  @@index([startsAt, endsAt])
+  @@index([groundName, startsAt])
+}
+
+model Notification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  title     String    @db.VarChar(140)
+  message   String
+  readAt    DateTime? @map("read_at")
+  metadata  Json?
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
