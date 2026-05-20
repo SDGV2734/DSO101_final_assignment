@@ -14,9 +14,6 @@ permissions:
 
 env:
   NODE_VERSION: "22"
-  BACKEND_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cst_booking_system?schema=public
-  JWT_SECRET: ci-secret-for-cst-booking-system-at-least-32-characters
-  CLIENT_ORIGIN: http://localhost:5173
 
 jobs:
   stage-1-unit-tests:
@@ -72,9 +69,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: ${{ env.BACKEND_DATABASE_URL }}
-      JWT_SECRET: ${{ env.JWT_SECRET }}
-      CLIENT_ORIGIN: ${{ env.CLIENT_ORIGIN }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cst_booking_system?schema=public
+      JWT_SECRET: ci-secret-for-cst-booking-system-at-least-32-characters
+      CLIENT_ORIGIN: http://localhost:5173
       COOKIE_SECURE: "false"
       LAUNDRY_RESOURCE_COUNT: "4"
       GROUND_RESOURCE_NAME: CST Football Ground
@@ -128,9 +125,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: ${{ env.BACKEND_DATABASE_URL }}
-      JWT_SECRET: ${{ env.JWT_SECRET }}
-      CLIENT_ORIGIN: ${{ env.CLIENT_ORIGIN }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cst_booking_system?schema=public
+      JWT_SECRET: ci-secret-for-cst-booking-system-at-least-32-characters
+      CLIENT_ORIGIN: http://localhost:5173
       COOKIE_SECURE: "false"
       LAUNDRY_RESOURCE_COUNT: "4"
       GROUND_RESOURCE_NAME: CST Football Ground
