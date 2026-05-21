@@ -24,7 +24,7 @@ export const SlotGrid = ({ slots, loading, bookingStart, onBook }: SlotGridProps
     return (
       <div className="rounded-3xl border border-dashed border-ink/20 bg-white/60 p-8 text-center">
         <p className="font-display text-2xl">No slots loaded yet.</p>
-        <p className="mt-2 text-sm text-ink/60">Choose a date to check availability.</p>
+        <p className="mt-2 text-sm text-ink/75">Choose a date to check availability.</p>
       </div>
     );
   }
@@ -41,7 +41,7 @@ export const SlotGrid = ({ slots, loading, bookingStart, onBook }: SlotGridProps
           }`}
         >
           <p className="font-display text-xl">{formatTimeRange(slot.startsAt, slot.endsAt)}</p>
-          <p className="mt-1 text-xs font-black uppercase tracking-[0.25em] text-moss">
+          <p className="mt-1 text-xs font-black uppercase tracking-[0.25em] text-pine">
             {slot.available ? "Available" : "Booked"}
           </p>
           <Button

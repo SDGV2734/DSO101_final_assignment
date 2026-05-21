@@ -48,11 +48,11 @@ export const AuthPage = ({ mode }: AuthPageProps) => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(235,185,79,0.56),transparent_30%),radial-gradient(circle_at_80%_8%,rgba(95,142,163,0.33),transparent_28%),linear-gradient(140deg,#fffaf0,#f4eadb)]" />
       <section className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="max-w-2xl">
-          <p className="text-xs font-black uppercase tracking-[0.45em] text-moss">CST Booking System</p>
+          <p className="text-xs font-black uppercase tracking-[0.45em] text-pine">CST Booking System</p>
           <h1 className="mt-5 font-display text-5xl leading-[0.95] sm:text-7xl">
             Book laundry and ground slots without the hallway negotiations.
           </h1>
-          <p className="mt-6 max-w-xl text-lg font-medium leading-8 text-ink/70">
+          <p className="mt-6 max-w-xl text-lg font-medium leading-8 text-ink/80">
             A calm campus booking desk for students: authenticated access, live availability, protected
             reservations, and a tidy dashboard for everything you have booked.
           </p>
@@ -60,7 +60,7 @@ export const AuthPage = ({ mode }: AuthPageProps) => {
 
         <Card className="animate-[slideUp_0.5s_ease-out]">
           <h2 className="font-display text-4xl">{isRegister ? "Create account" : "Welcome back"}</h2>
-          <p className="mt-2 text-sm text-ink/60">
+          <p className="mt-2 text-sm text-ink/75">
             {isRegister
               ? "Use your student details to start reserving campus facilities."
               : "Sign in to manage your laundry and football ground bookings."}
@@ -92,7 +92,7 @@ export const AuthPage = ({ mode }: AuthPageProps) => {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink/65">
+          <p className="mt-6 text-center text-sm text-ink/80">
             {isRegister ? "Already registered?" : "New to the system?"}{" "}
             <Link className="font-black text-pine underline decoration-marigold decoration-4" to={isRegister ? "/login" : "/register"}>
               {isRegister ? "Sign in" : "Create an account"}

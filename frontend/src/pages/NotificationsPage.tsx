@@ -31,9 +31,9 @@ export const NotificationsPage = () => {
   return (
     <AppShell>
       <Card>
-        <p className="text-xs font-black uppercase tracking-[0.35em] text-moss">In-app notifications</p>
+        <p className="text-xs font-black uppercase tracking-[0.35em] text-pine">In-app notifications</p>
         <h2 className="mt-3 font-display text-5xl">Your booking trail.</h2>
-        <p className="mt-4 max-w-2xl text-ink/65">
+        <p className="mt-4 max-w-2xl text-ink/80">
           Confirmations and cancellation notes are stored here. This keeps the demo self-contained while
           leaving a clear path to add email reminders later.
         </p>
@@ -47,12 +47,12 @@ export const NotificationsPage = () => {
             <Card key={notification.id} className={notification.readAt ? "opacity-70" : ""}>
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.25em] text-moss">
+                  <p className="text-xs font-black uppercase tracking-[0.25em] text-pine">
                     {notification.readAt ? "Read" : "New"}
                   </p>
                   <h3 className="mt-2 font-display text-3xl">{notification.title}</h3>
-                  <p className="mt-2 text-ink/70">{notification.message}</p>
-                  <p className="mt-4 text-xs font-bold text-ink/45">{formatDateTime(notification.createdAt)}</p>
+                  <p className="mt-2 text-ink/80">{notification.message}</p>
+                  <p className="mt-4 text-xs font-bold text-ink/75">{formatDateTime(notification.createdAt)}</p>
                 </div>
                 {!notification.readAt ? (
                   <Button variant="ghost" onClick={() => markAsRead(notification.id)}>
@@ -65,7 +65,7 @@ export const NotificationsPage = () => {
         ) : (
           <Card>
             <p className="font-display text-3xl">No notifications yet.</p>
-            <p className="mt-2 text-ink/60">Book a slot and the first one will appear here.</p>
+            <p className="mt-2 text-ink/75">Book a slot and the first one will appear here.</p>
           </Card>
         )}
       </section>

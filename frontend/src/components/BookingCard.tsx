@@ -17,7 +17,7 @@ export const BookingCard = ({ type, booking, onCancel, cancelling }: BookingCard
   <article className="rounded-3xl border border-ink/10 bg-white/70 p-5">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.25em] text-moss">
+        <p className="text-xs font-black uppercase tracking-[0.25em] text-pine">
           {type === "laundry" ? "Laundry slot" : "Football ground"}
         </p>
         <h3 className="mt-2 font-display text-2xl">
@@ -28,7 +28,7 @@ export const BookingCard = ({ type, booking, onCancel, cancelling }: BookingCard
       </div>
       <StatusBadge status={booking.status} />
     </div>
-    <p className="mt-4 text-sm font-bold text-ink/70">{formatDateTime(booking.startsAt)}</p>
+    <p className="mt-4 text-sm font-bold text-ink/80">{formatDateTime(booking.startsAt)}</p>
     {booking.status === "ACTIVE" && onCancel ? (
       <Button
         className="mt-5 w-full"

@@ -82,7 +82,7 @@ export const GroundPage = () => {
         <Card className="bg-pine text-chalk">
           <p className="text-xs font-black uppercase tracking-[0.35em] text-marigold">Football ground</p>
           <h2 className="mt-3 font-display text-5xl">Claim the pitch.</h2>
-          <p className="mt-4 text-chalk/70">
+          <p className="mt-4 text-chalk/85">
             Reserve the CST football ground for a clean one-hour slot. The backend rejects clashes even
             when two students click at the same time.
           </p>
@@ -105,10 +105,10 @@ export const GroundPage = () => {
         <Card>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-moss">Available slots</p>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-pine">Available slots</p>
               <h2 className="font-display text-3xl">CST Football Ground</h2>
             </div>
-            <p className="text-sm font-bold text-ink/60">{date}</p>
+            <p className="text-sm font-bold text-ink/75">{date}</p>
           </div>
 
           {message ? <p className="mt-5 rounded-3xl bg-pine/10 p-4 font-bold text-pine">{message}</p> : null}
@@ -134,7 +134,7 @@ export const GroundPage = () => {
               />
             ))
           ) : (
-            <p className="rounded-3xl bg-white/60 p-6 text-sm text-ink/60">No ground bookings yet.</p>
+            <p className="rounded-3xl bg-white/60 p-6 text-sm text-ink/75">No ground bookings yet.</p>
           )}
         </div>
       </Card>

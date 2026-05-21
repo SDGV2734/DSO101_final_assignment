@@ -89,9 +89,9 @@ export const LaundryPage = () => {
     <AppShell>
       <section className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
         <Card>
-          <p className="text-xs font-black uppercase tracking-[0.35em] text-moss">Laundry booking</p>
+          <p className="text-xs font-black uppercase tracking-[0.35em] text-pine">Laundry booking</p>
           <h2 className="mt-3 font-display text-5xl">Reserve a machine.</h2>
-          <p className="mt-4 text-ink/65">
+          <p className="mt-4 text-ink/80">
             Choose a washer or dryer, pick the machine number, and reserve an hourly slot.
           </p>
 
@@ -134,12 +134,12 @@ export const LaundryPage = () => {
         <Card>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-moss">Available slots</p>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-pine">Available slots</p>
               <h2 className="font-display text-3xl">
                 {resourceType.toLowerCase()} {resourceNumber}
               </h2>
             </div>
-            <p className="text-sm font-bold text-ink/60">{date}</p>
+            <p className="text-sm font-bold text-ink/75">{date}</p>
           </div>
 
           {message ? <p className="mt-5 rounded-3xl bg-pine/10 p-4 font-bold text-pine">{message}</p> : null}
@@ -165,7 +165,7 @@ export const LaundryPage = () => {
               />
             ))
           ) : (
-            <p className="rounded-3xl bg-white/60 p-6 text-sm text-ink/60">No laundry bookings yet.</p>
+            <p className="rounded-3xl bg-white/60 p-6 text-sm text-ink/75">No laundry bookings yet.</p>
           )}
         </div>
       </Card>

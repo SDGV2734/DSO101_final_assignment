@@ -26,7 +26,7 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
         <header className="mb-8 rounded-[2rem] border border-ink/10 bg-chalk/80 p-4 shadow-lifted backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.35em] text-moss">CST Booking System</p>
+              <p className="text-xs font-black uppercase tracking-[0.35em] text-pine">CST Booking System</p>
               <h1 className="font-display text-3xl leading-tight sm:text-4xl">Campus slots, calmly handled.</h1>
             </div>
             <nav className="flex flex-wrap gap-2">
@@ -47,7 +47,7 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-black">{user?.name}</p>
-                <p className="text-xs text-ink/55">{user?.studentId}</p>
+                <p className="text-xs text-ink/75">{user?.studentId}</p>
               </div>
               <Button variant="ghost" onClick={handleLogout}>
                 Sign out
