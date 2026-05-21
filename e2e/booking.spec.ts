@@ -24,6 +24,6 @@ test("student can register and reach booking workflows", async ({ page }) => {
   await expect(page.getByText("Available slots")).toBeVisible();
 
   await page.getByRole("link", { name: "Ground" }).click();
-  await expect(page.getByText("Football ground")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Claim the pitch." })).toBeVisible();
   await expect(page.getByText("Available slots")).toBeVisible();
 });
