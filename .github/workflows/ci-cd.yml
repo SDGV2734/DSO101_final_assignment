@@ -173,6 +173,15 @@ jobs:
             echo "Missing STAGING_URL repository secret."
             exit 1
           fi
+          if echo "${E2E_BASE_URL}" | grep -q "api"; then
+            echo "STAGING_URL must be the deployed frontend URL, not the backend API URL."
+            echo "Example: https://cst-booking-frontend-blue.onrender.com"
+            exit 1
+          fi
+
+      - name: Verify staging frontend is reachable
+        run: |
+          curl -fsS "${E2E_BASE_URL}/register" | grep -q "CST Booking System"
 
       - name: Install E2E dependencies
         run: npm ci

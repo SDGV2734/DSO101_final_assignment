@@ -5,6 +5,12 @@ test("student can register and reach booking workflows", async ({ page }) => {
   const email = `e2e-${stamp}@cst.local`;
 
   await page.goto("/register");
+
+  await expect(
+    page.getByRole("heading", { name: "Create account" }),
+    "The registration page did not render. Check that STAGING_URL points to the deployed frontend, not the backend."
+  ).toBeVisible({ timeout: 15000 });
+
   await page.getByLabel("Full name").fill("E2E Student");
   await page.getByLabel("Student ID").fill(`E2E-${stamp}`);
   await page.getByLabel("Email").fill(email);
