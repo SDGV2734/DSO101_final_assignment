@@ -19,7 +19,7 @@ RUN npm run build
 
 FROM nginx:1.29-alpine AS runtime
 
-RUN apk add --no-cache 'zlib>=1.3.2-r0'
+RUN apk add --no-cache 'zlib>=1.3.2-r0' 'nghttp2-libs>=1.68.1'
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
