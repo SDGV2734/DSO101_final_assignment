@@ -6,7 +6,15 @@ export default defineConfig({
     include: ["tests/unit/**/*.test.ts"],
     setupFiles: ["tests/setup/env.ts"],
     coverage: {
-      reporter: ["text", "lcov"]
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/utils/**/*.ts"],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80
+      }
     }
   }
 });

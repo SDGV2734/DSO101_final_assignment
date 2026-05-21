@@ -8,6 +8,7 @@
     "perf:k6": "k6 run scripts/k6/booking-smoke.js"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
     "@playwright/test": "^1.49.1"
   }
 }

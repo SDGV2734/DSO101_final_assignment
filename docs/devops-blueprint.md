@@ -49,6 +49,7 @@ The workflow is intentionally sequential. Each stage uses `needs`, so a failed s
 
 Stages:
 
+0. Preflight Secret Scan
 1. Unit Tests
 2. Integration Tests with a real PostgreSQL service container
 3. API Contract Tests with Supertest
@@ -57,6 +58,16 @@ Stages:
 6. Security & Quality Gates with CodeQL, TypeScript checks, and npm audit
 
 Deployment to Render only runs after all six stages pass on a push to `main`.
+
+Additional gates:
+
+- Unit tests enforce 80% coverage thresholds for the currently unit-tested helper layer.
+- Playwright uploads `playwright-report/` and `test-results/` artifacts when E2E fails.
+- E2E includes axe-core accessibility assertions.
+- k6 is verified to read `__ENV.API_BASE_URL`.
+- Prisma migrations are scanned for destructive SQL such as `DROP TABLE`, `DROP COLUMN`, and `TRUNCATE`.
+- Trivy scans backend and frontend Docker images for high/critical CVEs.
+- A best-effort rollback hook can be configured with `RENDER_ROLLBACK_DEPLOY_HOOK`.
 
 ## Test Runner Configuration
 
@@ -152,19 +163,13 @@ Required staging secrets:
 
 Required Render blue/green secrets:
 
-- `RENDER_BLUE_BACKEND_DEPLOY_HOOK`
-- `RENDER_GREEN_BACKEND_DEPLOY_HOOK`
-- `RENDER_BLUE_FRONTEND_DEPLOY_HOOK`
-- `RENDER_GREEN_FRONTEND_DEPLOY_HOOK`
-- `RENDER_BLUE_API_URL` - backend service root URL, without `/api`.
-- `RENDER_GREEN_API_URL` - backend service root URL, without `/api`.
-- `RENDER_BLUE_FRONTEND_URL`
-- `RENDER_GREEN_FRONTEND_URL`
-- `RENDER_PROMOTE_DEPLOY_HOOK` - optional router/promotion deploy hook.
+Required Render deployment secrets:
 
-Required GitHub repository variable:
-
-- `RENDER_ACTIVE_COLOR` - currently active production color, usually `blue` or `green`.
+- `RENDER_BACKEND_DEPLOY_HOOK`
+- `RENDER_FRONTEND_DEPLOY_HOOK`
+- `RENDER_API_URL` - backend service root URL, without `/api`.
+- `RENDER_FRONTEND_URL`
+- `RENDER_ROLLBACK_DEPLOY_HOOK` - optional hook for your previous known-good deployment/router.
 
 Optional security secrets:
 

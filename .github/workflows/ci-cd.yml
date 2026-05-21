@@ -16,9 +16,32 @@ env:
   NODE_VERSION: "22"
 
 jobs:
-  stage-1-unit-tests:
-    name: "Stage 1: Unit Tests"
+  preflight-secret-scan:
+    name: "Preflight: Secret Scan"
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan repository for leaked secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --only-verified
+
+  stage-1-unit-tests:
+    name: "Stage 1: Unit Tests (${{ matrix.app }})"
+    runs-on: ubuntu-latest
+    needs: preflight-secret-scan
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - app: backend
+            cache_path: backend/package-lock.json
+          - app: frontend
+            cache_path: frontend/package-lock.json
     steps:
       - uses: actions/checkout@v4
 
@@ -26,29 +49,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
+          cache-dependency-path: ${{ matrix.cache_path }}
 
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: npm ci
-        working-directory: backend
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: frontend
+        working-directory: ${{ matrix.app }}
 
       - name: Generate Prisma Client
+        if: matrix.app == 'backend'
         run: npm run prisma:generate
         working-directory: backend
 
-      - name: Backend unit tests
+      - name: Unit tests with coverage threshold
         run: npm run test:unit
-        working-directory: backend
-
-      - name: Frontend unit tests
-        run: npm run test:unit
-        working-directory: frontend
+        working-directory: ${{ matrix.app }}
 
   stage-2-integration-tests:
     name: "Stage 2: Integration Tests"
@@ -93,6 +107,14 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
         working-directory: frontend
+
+      - name: Prisma destructive migration guard
+        run: |
+          if grep -REi '\bDROP\s+(TABLE|COLUMN|DATABASE|SCHEMA)\b|\bTRUNCATE\b' prisma/migrations; then
+            echo "Potentially destructive Prisma migration detected. Review migration SQL before deploying."
+            exit 1
+          fi
+        working-directory: backend
 
       - name: Apply database migrations
         run: npm run prisma:deploy
@@ -192,6 +214,16 @@ jobs:
       - name: Run Playwright E2E journeys
         run: npm run test:e2e
 
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+
   stage-5-performance-tests:
     name: "Stage 5: Performance Tests"
     runs-on: ubuntu-latest
@@ -222,6 +254,9 @@ jobs:
 
       - name: Install k6
         uses: grafana/setup-k6-action@v1
+
+      - name: Verify k6 uses staged API base URL
+        run: grep -q "__ENV.API_BASE_URL" scripts/k6/booking-smoke.js
 
       - name: Require staging API URL
         run: |
@@ -280,6 +315,28 @@ jobs:
       - name: Analyze with CodeQL
         uses: github/codeql-action/analyze@v3
 
+      - name: Build backend container image
+        run: docker build -t cst-booking-backend:ci ./backend
+
+      - name: Scan backend container image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: cst-booking-backend:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Build frontend container image
+        run: docker build -t cst-booking-frontend:ci ./frontend
+
+      - name: Scan frontend container image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: cst-booking-frontend:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
   deploy-render:
     name: "Deploy: Render"
     runs-on: ubuntu-latest
@@ -290,12 +347,22 @@ jobs:
       RENDER_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}
       RENDER_API_URL: ${{ secrets.RENDER_API_URL }}
       RENDER_FRONTEND_URL: ${{ secrets.RENDER_FRONTEND_URL }}
+      RENDER_ROLLBACK_DEPLOY_HOOK: ${{ secrets.RENDER_ROLLBACK_DEPLOY_HOOK }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Trigger Render deploy hooks
         run: |
           set -euo pipefail
+          rollback() {
+            if [ -n "${RENDER_ROLLBACK_DEPLOY_HOOK:-}" ]; then
+              echo "Deployment failed. Triggering configured rollback hook..."
+              curl -fsS -X POST "${RENDER_ROLLBACK_DEPLOY_HOOK}" || true
+            else
+              echo "Deployment failed. No RENDER_ROLLBACK_DEPLOY_HOOK configured; manual rollback may be required."
+            fi
+          }
+          trap rollback ERR
 
           if [ -z "${RENDER_BACKEND_DEPLOY_HOOK}" ] || [ -z "${RENDER_FRONTEND_DEPLOY_HOOK}" ]; then
             echo "Missing RENDER_BACKEND_DEPLOY_HOOK or RENDER_FRONTEND_DEPLOY_HOOK."
@@ -312,15 +379,22 @@ jobs:
           curl -fsS -X POST "${RENDER_FRONTEND_DEPLOY_HOOK}"
 
           echo "Waiting for backend health..."
+          backend_ready=false
           for attempt in $(seq 1 30); do
             if curl -fsS "${RENDER_API_URL}/api/health"; then
+              backend_ready=true
               break
             fi
             echo "Backend not ready yet, attempt ${attempt}/30"
             sleep 10
           done
+          if [ "${backend_ready}" != "true" ]; then
+            echo "Backend health check failed after 30 attempts."
+            exit 1
+          fi
 
           echo "Checking frontend..."
           curl -fsS "${RENDER_FRONTEND_URL}" >/dev/null
 
           echo "Render deployment smoke check completed."
+          trap - ERR
