@@ -1,0 +1,14 @@
+name: cst-booking-system-codeql
+
+paths:
+  - backend/src
+  - frontend/src
+  - e2e
+  - scripts
+
+paths-ignore:
+  - "**/dist/**"
+  - "**/node_modules/**"
+  - "**/coverage/**"
+  - "**/playwright-report/**"
+  - "**/test-results/**"

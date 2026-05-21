@@ -287,6 +287,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Install backend dependencies
         run: npm ci
@@ -316,7 +317,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
       - name: Build backend container image
-        run: docker build -t cst-booking-backend:ci ./backend
+        run: docker build --pull -t cst-booking-backend:ci ./backend
 
       - name: Scan backend container image
         uses: aquasecurity/trivy-action@master
@@ -327,7 +328,7 @@ jobs:
           exit-code: "1"
 
       - name: Build frontend container image
-        run: docker build -t cst-booking-frontend:ci ./frontend
+        run: docker build --pull -t cst-booking-frontend:ci ./frontend
 
       - name: Scan frontend container image
         uses: aquasecurity/trivy-action@master

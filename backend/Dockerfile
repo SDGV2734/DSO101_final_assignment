@@ -3,7 +3,7 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apk upgrade --no-cache zlib && apk add --no-cache openssl
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
@@ -21,7 +21,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-RUN apk add --no-cache dumb-init openssl
+RUN apk upgrade --no-cache zlib && apk add --no-cache dumb-init openssl
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
