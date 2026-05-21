@@ -181,7 +181,7 @@ jobs:
 
       - name: Verify staging frontend is reachable
         run: |
-          curl -fsS "${E2E_BASE_URL}/register" | grep -q "CST Booking System"
+          curl -fsS "${E2E_BASE_URL}" | grep -q "CST Booking System"
 
       - name: Install E2E dependencies
         run: npm ci
