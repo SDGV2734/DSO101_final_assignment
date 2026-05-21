@@ -26,7 +26,8 @@ RUN apk add --no-cache dumb-init openssl
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
 RUN npm ci --omit=dev && npm cache clean --force
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 COPY --from=build /app/dist ./dist
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
