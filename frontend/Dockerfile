@@ -3,6 +3,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
+RUN apk add --no-cache 'zlib>=1.3.2-r0'
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -17,7 +19,7 @@ RUN npm run build
 
 FROM nginx:1.29-alpine AS runtime
 
-RUN apk upgrade --no-cache zlib
+RUN apk add --no-cache 'zlib>=1.3.2-r0'
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
