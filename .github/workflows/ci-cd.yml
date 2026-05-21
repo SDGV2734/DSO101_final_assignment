@@ -271,56 +271,40 @@ jobs:
       - name: Analyze with CodeQL
         uses: github/codeql-action/analyze@v3
 
-  deploy-render-blue-green:
-    name: "Deploy: Render Blue/Green"
+  deploy-render:
+    name: "Deploy: Render"
     runs-on: ubuntu-latest
     needs: stage-6-security-quality-gates
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     env:
-      RENDER_ACTIVE_COLOR: ${{ vars.RENDER_ACTIVE_COLOR }}
-      RENDER_BLUE_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_BLUE_BACKEND_DEPLOY_HOOK }}
-      RENDER_GREEN_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_GREEN_BACKEND_DEPLOY_HOOK }}
-      RENDER_BLUE_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_BLUE_FRONTEND_DEPLOY_HOOK }}
-      RENDER_GREEN_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_GREEN_FRONTEND_DEPLOY_HOOK }}
-      RENDER_BLUE_API_URL: ${{ secrets.RENDER_BLUE_API_URL }}
-      RENDER_GREEN_API_URL: ${{ secrets.RENDER_GREEN_API_URL }}
-      RENDER_BLUE_FRONTEND_URL: ${{ secrets.RENDER_BLUE_FRONTEND_URL }}
-      RENDER_GREEN_FRONTEND_URL: ${{ secrets.RENDER_GREEN_FRONTEND_URL }}
-      RENDER_PROMOTE_DEPLOY_HOOK: ${{ secrets.RENDER_PROMOTE_DEPLOY_HOOK }}
+      RENDER_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}
+      RENDER_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}
+      RENDER_API_URL: ${{ secrets.RENDER_API_URL }}
+      RENDER_FRONTEND_URL: ${{ secrets.RENDER_FRONTEND_URL }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select inactive color and trigger Render deploy hooks
+      - name: Trigger Render deploy hooks
         run: |
           set -euo pipefail
 
-          ACTIVE="${RENDER_ACTIVE_COLOR:-blue}"
-          if [ "${ACTIVE}" = "blue" ]; then
-            TARGET="green"
-            BACKEND_HOOK="${RENDER_GREEN_BACKEND_DEPLOY_HOOK}"
-            FRONTEND_HOOK="${RENDER_GREEN_FRONTEND_DEPLOY_HOOK}"
-            TARGET_API_URL="${RENDER_GREEN_API_URL}"
-            TARGET_FRONTEND_URL="${RENDER_GREEN_FRONTEND_URL}"
-          else
-            TARGET="blue"
-            BACKEND_HOOK="${RENDER_BLUE_BACKEND_DEPLOY_HOOK}"
-            FRONTEND_HOOK="${RENDER_BLUE_FRONTEND_DEPLOY_HOOK}"
-            TARGET_API_URL="${RENDER_BLUE_API_URL}"
-            TARGET_FRONTEND_URL="${RENDER_BLUE_FRONTEND_URL}"
-          fi
-
-          if [ -z "${BACKEND_HOOK}" ] || [ -z "${FRONTEND_HOOK}" ]; then
-            echo "Missing Render deploy hook for target color: ${TARGET}"
+          if [ -z "${RENDER_BACKEND_DEPLOY_HOOK}" ] || [ -z "${RENDER_FRONTEND_DEPLOY_HOOK}" ]; then
+            echo "Missing RENDER_BACKEND_DEPLOY_HOOK or RENDER_FRONTEND_DEPLOY_HOOK."
             exit 1
           fi
 
-          echo "Deploying inactive ${TARGET} environment..."
-          curl -fsS -X POST "${BACKEND_HOOK}"
-          curl -fsS -X POST "${FRONTEND_HOOK}"
+          if [ -z "${RENDER_API_URL}" ] || [ -z "${RENDER_FRONTEND_URL}" ]; then
+            echo "Missing RENDER_API_URL or RENDER_FRONTEND_URL."
+            exit 1
+          fi
+
+          echo "Deploying backend and frontend on Render..."
+          curl -fsS -X POST "${RENDER_BACKEND_DEPLOY_HOOK}"
+          curl -fsS -X POST "${RENDER_FRONTEND_DEPLOY_HOOK}"
 
           echo "Waiting for backend health..."
           for attempt in $(seq 1 30); do
-            if curl -fsS "${TARGET_API_URL}/api/health"; then
+            if curl -fsS "${RENDER_API_URL}/api/health"; then
               break
             fi
             echo "Backend not ready yet, attempt ${attempt}/30"
@@ -328,11 +312,6 @@ jobs:
           done
 
           echo "Checking frontend..."
-          curl -fsS "${TARGET_FRONTEND_URL}" >/dev/null
+          curl -fsS "${RENDER_FRONTEND_URL}" >/dev/null
 
-          if [ -n "${RENDER_PROMOTE_DEPLOY_HOOK}" ]; then
-            echo "Triggering promotion/router deploy hook..."
-            curl -fsS -X POST "${RENDER_PROMOTE_DEPLOY_HOOK}"
-          else
-            echo "No RENDER_PROMOTE_DEPLOY_HOOK configured. Target environment deployed and smoke checked."
-          fi
+          echo "Render deployment smoke check completed."
