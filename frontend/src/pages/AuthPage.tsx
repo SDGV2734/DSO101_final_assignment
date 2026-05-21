@@ -44,7 +44,7 @@ export const AuthPage = ({ mode }: AuthPageProps) => {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-linen text-ink">
+    <main className="relative min-h-screen overflow-x-hidden bg-linen text-ink">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(235,185,79,0.56),transparent_30%),radial-gradient(circle_at_80%_8%,rgba(95,142,163,0.33),transparent_28%),linear-gradient(140deg,#fffaf0,#f4eadb)]" />
       <section className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="max-w-2xl">

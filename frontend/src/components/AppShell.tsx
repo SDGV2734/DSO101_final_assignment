@@ -20,7 +20,13 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-linen text-ink">
+    <div className="min-h-screen overflow-x-hidden bg-linen text-ink">
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:font-bold focus:text-chalk"
+        href="#main-content"
+      >
+        Skip to main content
+      </a>
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(235,185,79,0.45),transparent_32%),radial-gradient(circle_at_80%_10%,rgba(95,142,163,0.28),transparent_30%),linear-gradient(135deg,rgba(255,250,240,0.9),rgba(244,234,219,0.9))]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
         <header className="mb-8 rounded-[2rem] border border-ink/10 bg-chalk/80 p-4 shadow-lifted backdrop-blur">
@@ -29,7 +35,7 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
               <p className="text-xs font-black uppercase tracking-[0.35em] text-pine">CST Booking System</p>
               <h1 className="font-display text-3xl leading-tight sm:text-4xl">Campus slots, calmly handled.</h1>
             </div>
-            <nav className="flex flex-wrap gap-2">
+            <nav aria-label="Primary navigation" className="flex flex-wrap gap-2">
               {navItems.map((item) => (
                 <NavLink
                   key={item.to}
@@ -55,7 +61,9 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
             </div>
           </div>
         </header>
-        <main className="relative flex-1">{children}</main>
+        <main className="relative flex-1" id="main-content" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   );

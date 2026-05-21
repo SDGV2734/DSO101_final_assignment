@@ -142,8 +142,16 @@ export const LaundryPage = () => {
             <p className="text-sm font-bold text-ink/75">{date}</p>
           </div>
 
-          {message ? <p className="mt-5 rounded-3xl bg-pine/10 p-4 font-bold text-pine">{message}</p> : null}
-          {error ? <p className="mt-5 rounded-3xl bg-clay/15 p-4 font-bold text-clay">{error}</p> : null}
+          {message ? (
+            <p className="mt-5 rounded-3xl bg-pine/10 p-4 font-bold text-pine" role="status">
+              {message}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="mt-5 rounded-3xl bg-clay/15 p-4 font-bold text-clay" role="alert">
+              {error}
+            </p>
+          ) : null}
 
           <div className="mt-6">
             <SlotGrid slots={slots} loading={loading} bookingStart={bookingStart} onBook={handleBook} />

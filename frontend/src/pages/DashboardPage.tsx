@@ -52,7 +52,7 @@ export const DashboardPage = () => {
               <h2 className="font-display text-3xl">Notifications</h2>
             </div>
           </div>
-          <div className="mt-5 grid gap-3">
+          <div aria-live="polite" className="mt-5 grid gap-3">
             {dashboard?.notifications.length ? (
               dashboard.notifications.slice(0, 5).map((notification) => (
                 <div key={notification.id} className="rounded-3xl bg-white/70 p-4">
@@ -69,7 +69,11 @@ export const DashboardPage = () => {
         </Card>
       </section>
 
-      {error ? <p className="mt-6 rounded-3xl bg-clay/15 p-4 font-bold text-clay">{error}</p> : null}
+      {error ? (
+        <p className="mt-6 rounded-3xl bg-clay/15 p-4 font-bold text-clay" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <section className="mt-8 grid gap-6 xl:grid-cols-2">
         <Card>

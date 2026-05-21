@@ -3,6 +3,18 @@ import { expect, test, type Page } from "@playwright/test";
 
 const expectNoAccessibilityViolations = async (page: Page) => {
   const results = await new AxeBuilder({ page }).analyze();
+  if (results.violations.length > 0) {
+    console.log(
+      results.violations
+        .map(
+          (violation) =>
+            `${violation.id}: ${violation.help} (${violation.nodes.length} node${
+              violation.nodes.length === 1 ? "" : "s"
+            })`
+        )
+        .join("\n")
+    );
+  }
   expect(results.violations).toEqual([]);
 };
 

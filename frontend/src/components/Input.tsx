@@ -2,15 +2,16 @@ import { useState, type InputHTMLAttributes } from "react";
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
+  labelClassName?: string;
 };
 
-export const Input = ({ label, className = "", type, ...props }: InputProps) => {
+export const Input = ({ label, className = "", labelClassName = "text-ink", type, ...props }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword && showPassword ? "text" : type;
 
   return (
-    <label className="grid gap-2 text-sm font-bold text-ink">
+    <label className={`grid gap-2 text-sm font-bold ${labelClassName}`}>
       <span>{label}</span>
       <span className="relative block">
         <input
